@@ -1,0 +1,61 @@
+export type AirportInfo = {
+  code: string
+  name: string
+  city: string
+  terminal?: string
+  gate?: string
+}
+
+export type Flight = {
+  id: string
+  airline: string
+  flightNumber: string
+  origin: string
+  destination: string
+  date: string
+  depart: string
+  arrive: string
+  duration: string
+  stops: number
+  stopCity?: string
+  price: number
+  cabin: string
+  aircraft: string
+  bag: string
+  refundable: boolean
+  // Enriched fields
+  imageUrl: string
+  departureAirport: AirportInfo
+  arrivalAirport: AirportInfo
+  gate: string
+  arrivalGate: string
+  vacantSeats: number
+  co2: string
+  rating: number
+  reviewCount: number
+  baggageWeight: string
+  petAllowed: boolean
+  secondFlightNumber?: string
+  secondAirline?: string
+}
+
+export type FlightSearchInputs = {
+  origin: string
+  destination: string
+  departDate: string
+  returnDate?: string
+  passengers: number
+  cabinClass: string
+  tripType: 'one-way' | 'round-trip'
+}
+
+
+
+
+export type PassengerCount = {
+  adults: number
+  children: number
+  infants: number
+}
+
+          

@@ -49,8 +49,34 @@ export type FlightSearchInputs = {
   tripType: 'one-way' | 'round-trip'
 }
 
+export type FlightFilters = {
+  airlines: string[]
+  stops: number[]
+  cabins: string[]
+  minPrice: number
+  maxPrice: number
+  minDepartTime: number  // minutes from midnight
+  maxDepartTime: number
+  maxDuration: number    // minutes
+  passengerRating: string
+  refundableOnly: boolean
+  vipOnly: boolean
+  childrenIncluded: boolean
+}
 
+export type SortOption = 'cheapest' | 'fastest' | 'earliest' | 'latest'
 
+export type BookingFormData = {
+  firstName: string
+  lastName: string
+  phone: string
+  email: string
+  cardNumber: string
+  cvc: string
+  expDate: string
+  bookingForWork: boolean
+  paymentMethod: 'paypal' | 'visa' | 'mastercard' | 'amex'
+}
 
 export type PassengerCount = {
   adults: number
@@ -58,4 +84,8 @@ export type PassengerCount = {
   infants: number
 }
 
-          
+export type BookingInfo = {
+  fullName: string
+  email: string
+  phone: string
+}

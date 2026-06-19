@@ -72,7 +72,7 @@ export default function FlightSearchBar({ initialValues, onSearch }: FlightSearc
     if (onSearch) {
       onSearch({ ...inputs, passengers: totalPassengers })
     } else {
-      router.push(`/flight?${params.toString()}`)
+      router.push(`/?${params.toString()}`)
     }
   }
 

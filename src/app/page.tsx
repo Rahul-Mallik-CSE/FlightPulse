@@ -1,4 +1,5 @@
 
+import FlightResultsSection from "@/components/FlightComponents/FlightResultsSection";
 import FlightSearchBar from "@/components/FlightComponents/FlightSearchBar";
 import { Suspense } from "react";
 
@@ -14,6 +15,15 @@ export default function Home() {
 
       {/* Divider */}
       <div className="w-full h-px bg-card-border" />
+
+      {/* Results + filter section */}
+      <Suspense fallback={
+        <div className="w-full flex items-center justify-center py-20">
+          <div className="w-10 h-10 rounded-full border-4 border-muted border-t-theme animate-spin" />
+        </div>
+      }>
+        <FlightResultsSection />
+      </Suspense>
 
      
     </main>

@@ -10,10 +10,10 @@ const FooterAppSection = () => {
         {/* Left: text content */}
         <div className="flex flex-col gap-0.5 max-w-xl">
           <h2 className="text-lg md:text-xl font-bold text-theme leading-snug">
-            Go Further With The EasyTravio App
+            Go Further With The Flight Pulse App
           </h2>
           <p className="text-xs md:text-sm text-primary leading-relaxed">
-            Enjoy Savings On Chosen Hotels And Flights When You Book Through The EasyTravio Website.
+            Enjoy Savings On Chosen Hotels And Flights When You Book Through The Flight Pulse Website.
             Additionally, Earn One Key Cash For Every Booking Made Through The App.
           </p>
           <p className="text-xs md:text-sm text-secondary ">Secured By Europe GTP</p>

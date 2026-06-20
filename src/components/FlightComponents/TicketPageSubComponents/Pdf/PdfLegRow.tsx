@@ -9,7 +9,7 @@ type PdfLegRowProps = {
 
 export default function PdfLegRow({ row, alternate }: PdfLegRowProps) {
   return (
-    <View style={[ticketPdfStyles.row, alternate ? ticketPdfStyles.rowAlt : null]}>
+    <View style={alternate ? [ticketPdfStyles.row, ticketPdfStyles.rowAlt] : ticketPdfStyles.row}>
       <View style={[ticketPdfStyles.tableCell, { width: '24%' }]}>
         <Text style={ticketPdfStyles.flightAirline}>{row.airline}</Text>
         <Text style={ticketPdfStyles.flightNumber}>{row.flightNumber}</Text>

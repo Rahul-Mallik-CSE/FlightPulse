@@ -9,12 +9,22 @@ import {
   PlaneTakeoff,
   PlaneLanding,
   Search,
+  X,
 } from 'lucide-react'
-import { FlightSearchInputs, PassengerCount } from '@/types/FlightTypes'
+import flightsData from '@/data/flights.json'
+import { Flight, FlightSearchInputs, PassengerCount } from '@/types/FlightTypes'
 
+const ALL_FLIGHTS = flightsData as Flight[]
 
-const POPULAR_ORIGINS = ['New York (NYC)', 'London (LHR)', 'Paris (CDG)', 'Tokyo (TYO)', 'Dubai (DXB)']
-const POPULAR_DESTINATIONS = ['Los Angeles (LAX)', 'Miami (MIA)', 'Chicago (ORD)', 'Istanbul (IST)', 'Singapore (SIN)']
+const formatAirportOption = (city?: string, code?: string) => {
+  if (city && code) return `${city} (${code})`
+  if (city) return city
+  if (code) return code
+  return ''
+}
+
+const POPULAR_ORIGINS = [...new Set(ALL_FLIGHTS.map((flight) => formatAirportOption(flight.departureAirport.city, flight.origin)).filter(Boolean))].sort()
+const POPULAR_DESTINATIONS = [...new Set(ALL_FLIGHTS.map((flight) => formatAirportOption(flight.arrivalAirport.city, flight.destination)).filter(Boolean))].sort()
 const CABIN_CLASSES = ['Economy', 'Premium Economy', 'Business', 'First Class']
 
 interface FlightSearchBarProps {
@@ -26,29 +36,38 @@ export default function FlightSearchBar({ initialValues, onSearch }: FlightSearc
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [inputs, setInputs] = useState<FlightSearchInputs>({
-    origin: initialValues?.origin || searchParams.get('origin') || 'New York (NYC)',
-    destination: initialValues?.destination || searchParams.get('destination') || 'Los Angeles (LAX)',
-    departDate: initialValues?.departDate || searchParams.get('date') || '2026-08-15',
+  const getInitialInputs = (): FlightSearchInputs => ({
+    origin: initialValues?.origin || searchParams.get('origin') || '',
+    destination: initialValues?.destination || searchParams.get('destination') || '',
+    departDate: initialValues?.departDate || searchParams.get('date') || '',
     returnDate: initialValues?.returnDate || searchParams.get('returnDate') || '',
-    passengers: initialValues?.passengers || Number(searchParams.get('passengers')) || 2,
-    cabinClass: initialValues?.cabinClass || searchParams.get('cabin') || 'Economy',
+    passengers: initialValues?.passengers || Number(searchParams.get('passengers')) || 0,
+    cabinClass: initialValues?.cabinClass || searchParams.get('cabin') || '',
     tripType: (initialValues?.tripType || searchParams.get('tripType') || 'one-way') as 'one-way' | 'round-trip',
   })
 
+  const [inputs, setInputs] = useState<FlightSearchInputs>(() => getInitialInputs())
+
   const [passengers, setPassengers] = useState<PassengerCount>({
-    adults: 2,
+    adults: 0,
     children: 0,
     infants: 0,
   })
 
   const [showPassengerDropdown, setShowPassengerDropdown] = useState(false)
-  const [showCabinDropdown, setShowCabinDropdown] = useState(false)
+  const [, setShowCabinDropdown] = useState(false)
   const [showOriginDropdown, setShowOriginDropdown] = useState(false)
   const [showDestDropdown, setShowDestDropdown] = useState(false)
+  const [departDateFocused, setDepartDateFocused] = useState(false)
+  const [returnDateFocused, setReturnDateFocused] = useState(false)
   const passengerRef = useRef<HTMLDivElement>(null)
 
   const totalPassengers = passengers.adults + passengers.children + passengers.infants
+  const selectedPassengerLabel =
+    totalPassengers > 0
+      ? `${passengers.adults} Adult${passengers.adults !== 1 ? 's' : ''}${passengers.children > 0 ? `, ${passengers.children} Child${passengers.children !== 1 ? 'ren' : ''}` : ''}${passengers.infants > 0 ? `, ${passengers.infants} Infant${passengers.infants !== 1 ? 's' : ''}` : ''}`
+      : 'Select passengers'
+  const selectedCabinLabel = inputs.cabinClass || 'Select cabin class'
 
   function swapLocations() {
     setInputs((prev) => ({
@@ -59,20 +78,47 @@ export default function FlightSearchBar({ initialValues, onSearch }: FlightSearc
   }
 
   function handleSearch() {
+    const passengerTotal = totalPassengers > 0 ? totalPassengers : 1
     const params = new URLSearchParams({
       origin: inputs.origin,
       destination: inputs.destination,
       date: inputs.departDate,
-      passengers: totalPassengers.toString(),
-      cabin: inputs.cabinClass,
+      passengers: passengerTotal.toString(),
       tripType: inputs.tripType,
     })
+    if (inputs.cabinClass) params.set('cabin', inputs.cabinClass)
     if (inputs.returnDate) params.set('returnDate', inputs.returnDate)
 
     if (onSearch) {
-      onSearch({ ...inputs, passengers: totalPassengers })
+      onSearch({ ...inputs, passengers: passengerTotal })
     } else {
       router.push(`/?${params.toString()}`)
+    }
+  }
+
+  function handleClearSearch() {
+    const clearedInputs = getInitialInputs()
+    clearedInputs.origin = ''
+    clearedInputs.destination = ''
+    clearedInputs.departDate = ''
+    clearedInputs.returnDate = ''
+    clearedInputs.passengers = 0
+    clearedInputs.cabinClass = ''
+    clearedInputs.tripType = 'one-way'
+
+    setInputs(clearedInputs)
+    setPassengers({ adults: 0, children: 0, infants: 0 })
+    setShowPassengerDropdown(false)
+    setShowCabinDropdown(false)
+    setShowOriginDropdown(false)
+    setShowDestDropdown(false)
+    setDepartDateFocused(false)
+    setReturnDateFocused(false)
+
+    if (onSearch) {
+      onSearch({ ...clearedInputs, passengers: 1 })
+    } else {
+      router.push('/')
     }
   }
 
@@ -83,8 +129,6 @@ export default function FlightSearchBar({ initialValues, onSearch }: FlightSearc
       return { ...prev, [type]: newVal }
     })
   }
-
-  const passengerLabel = `${passengers.adults} Adult${passengers.adults !== 1 ? 's' : ''}${passengers.children > 0 ? `, ${passengers.children} Child${passengers.children !== 1 ? 'ren' : ''}` : ''}${passengers.infants > 0 ? `, ${passengers.infants} Infant${passengers.infants !== 1 ? 's' : ''}` : ''}`
 
   return (
     <div className="w-full">
@@ -127,14 +171,14 @@ export default function FlightSearchBar({ initialValues, onSearch }: FlightSearc
                 onChange={(e) => setInputs((p) => ({ ...p, origin: e.target.value }))}
                 onFocus={() => setShowOriginDropdown(true)}
                 onBlur={() => setTimeout(() => setShowOriginDropdown(false), 150)}
-                placeholder="City or airport"
+                placeholder="Select place"
                 className="w-full pl-9 pr-3 py-2.5 border border-border rounded-sm text-sm text-foreground bg-background focus:outline-none focus:ring-1 focus:ring-theme focus:border-theme"
               />
               {showOriginDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-50 overflow-hidden">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-50 overflow-hidden max-h-64 overflow-y-auto">
                   {POPULAR_ORIGINS.filter((c) =>
-                    c.toLowerCase().includes(inputs.origin.toLowerCase())
-                  ).slice(0, 5).map((city) => (
+                    c.toLowerCase().includes(inputs.origin.toLowerCase().trim())
+                  ).map((city) => (
                     <button
                       key={city}
                       onMouseDown={() => {
@@ -173,14 +217,14 @@ export default function FlightSearchBar({ initialValues, onSearch }: FlightSearc
                 onChange={(e) => setInputs((p) => ({ ...p, destination: e.target.value }))}
                 onFocus={() => setShowDestDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDestDropdown(false), 150)}
-                placeholder="City or airport"
+                placeholder="Select place"
                 className="w-full pl-9 pr-3 py-2.5 border border-border rounded-sm text-sm text-foreground bg-background focus:outline-none focus:ring-1 focus:ring-theme focus:border-theme"
               />
               {showDestDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-50 overflow-hidden">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-50 overflow-hidden max-h-64 overflow-y-auto">
                   {POPULAR_DESTINATIONS.filter((c) =>
-                    c.toLowerCase().includes(inputs.destination.toLowerCase())
-                  ).slice(0, 5).map((city) => (
+                    c.toLowerCase().includes(inputs.destination.toLowerCase().trim())
+                  ).map((city) => (
                     <button
                       key={city}
                       onMouseDown={() => {
@@ -209,7 +253,7 @@ export default function FlightSearchBar({ initialValues, onSearch }: FlightSearc
             >
               <div className="flex items-center gap-2 min-w-0">
                 <Users className="w-4 h-4 text-theme shrink-0" />
-                <span className="truncate text-xs">{passengerLabel} · {inputs.cabinClass}</span>
+                  <span className="truncate text-xs">{selectedPassengerLabel} · {selectedCabinLabel}</span>
               </div>
               <ChevronDown className="w-4 h-4 text-secondary shrink-0" />
             </button>
@@ -285,9 +329,15 @@ export default function FlightSearchBar({ initialValues, onSearch }: FlightSearc
               <div className="relative flex-1">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme" />
                 <input
-                  type="date"
+                  type={departDateFocused || Boolean(inputs.departDate) ? 'date' : 'text'}
                   value={inputs.departDate}
                   onChange={(e) => setInputs((p) => ({ ...p, departDate: e.target.value }))}
+                  onFocus={() => setDepartDateFocused(true)}
+                  onBlur={() => {
+                    if (!inputs.departDate) setDepartDateFocused(false)
+                  }}
+                  placeholder="Select date"
+                  aria-label="Select departure date"
                   className="w-full pl-9 pr-2 py-2.5 border border-border rounded-sm text-sm text-foreground bg-background focus:outline-none focus:ring-1 focus:ring-theme focus:border-theme"
                 />
               </div>
@@ -295,9 +345,15 @@ export default function FlightSearchBar({ initialValues, onSearch }: FlightSearc
                 <div className="relative flex-1">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
                   <input
-                    type="date"
+                    type={returnDateFocused || Boolean(inputs.returnDate) ? 'date' : 'text'}
                     value={inputs.returnDate}
                     onChange={(e) => setInputs((p) => ({ ...p, returnDate: e.target.value }))}
+                    onFocus={() => setReturnDateFocused(true)}
+                    onBlur={() => {
+                      if (!inputs.returnDate) setReturnDateFocused(false)
+                    }}
+                    placeholder="Select date"
+                    aria-label="Select return date"
                     className="w-full pl-9 pr-2 py-2.5 border border-border rounded-sm text-sm text-foreground bg-background focus:outline-none focus:ring-1 focus:ring-theme focus:border-theme"
                   />
                 </div>
@@ -306,13 +362,22 @@ export default function FlightSearchBar({ initialValues, onSearch }: FlightSearc
           </div>
 
           {/* Search button */}
-          <button
-            onClick={handleSearch}
-            className="flex items-center justify-center gap-2 bg-theme text-white px-6 py-2.5 rounded-sm font-semibold text-sm hover:bg-blue-700 active:bg-blue-800 transition-colors cursor-pointer whitespace-nowrap"
-          >
-            <Search className="w-4 h-4" />
-            Find Flights
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={handleSearch}
+              className="flex items-center justify-center gap-2 bg-theme text-white px-6 py-2.5 rounded-sm font-semibold text-sm hover:bg-blue-700 active:bg-blue-800 transition-colors cursor-pointer whitespace-nowrap"
+            >
+              <Search className="w-4 h-4" />
+              Find Flights
+            </button>
+            <button
+              onClick={handleClearSearch}
+              className="flex items-center justify-center gap-2 border border-border bg-white text-secondary px-5 py-2.5 rounded-sm font-semibold text-sm hover:border-theme hover:text-theme transition-colors cursor-pointer whitespace-nowrap"
+            >
+              <X className="w-4 h-4" />
+              Clear
+            </button>
+          </div>
         </div>
       </div>
     </div>

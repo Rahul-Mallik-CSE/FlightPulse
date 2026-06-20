@@ -1,5 +1,6 @@
 'use client'
 import React, { use, useState, useEffect } from 'react'
+import * as countryCodesList from 'country-codes-list'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import {
@@ -61,6 +62,9 @@ export default function BookingPage({
   const [errors, setErrors] = useState<FieldErrors>({})
   const [touched, setTouched] = useState<Partial<Record<keyof BookingFormData, boolean>>>({})
 
+  const countries = countryCodesList.all()
+  const [dialCode, setDialCode] = useState('46') // Sweden default (matches the 🇸🇪 you had)
+  
   const [form, setForm] = useState<BookingFormData>({
     firstName: '',
     lastName: '',
@@ -348,17 +352,30 @@ export default function BookingPage({
                 <label className="block text-xs font-semibold text-foreground mb-1">
                   Phone Number <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs">🇸🇪</span>
-                  <input
-                    id="phone"
-                    type="tel"
-                    value={form.phone}
-                    onChange={(e) => updateField('phone', e.target.value)}
-                    placeholder="76437 88888"
-                    aria-describedby="phone-error"
-                    className={`w-full pl-9 pr-3 py-2.5 border rounded-sm text-sm bg-background focus:outline-none focus:ring-1 focus:ring-theme transition-colors ${getFieldError('phone') ? 'border-red-400 bg-red-50' : 'border-border'}`}
-                  />
+                <div className="flex gap-2">
+                  <select
+                    value={dialCode}
+                    onChange={(e) => setDialCode(e.target.value)}
+                    className="shrink-0 w-36 px-2 py-2.5 border border-border rounded-sm text-sm bg-background focus:outline-none focus:ring-1 focus:ring-theme transition-colors appearance-none cursor-pointer"
+                  >
+                    {countries.map((c) => (
+                      <option key={`${c.countryCode}-${c.countryCallingCode}`} value={c.countryCallingCode}>
+                        {c.flag} +{c.countryCallingCode} ({c.countryCode})
+                      </option>
+                    ))}
+                  </select>
+                  <div className="relative flex-1">
+                    <input
+                      id="phone"
+                      type="tel"
+                      inputMode="numeric"
+                      value={form.phone}
+                      onChange={(e) => updateField('phone', e.target.value.replace(/\D/g, ''))}
+                      placeholder="76437 88888"
+                      aria-describedby="phone-error"
+                      className={`w-full px-3 py-2.5 border rounded-sm text-sm bg-background focus:outline-none focus:ring-1 focus:ring-theme transition-colors ${getFieldError('phone') ? 'border-red-400 bg-red-50' : 'border-border'}`}
+                    />
+                  </div>
                 </div>
                 {getFieldError('phone') && (
                   <p id="phone-error" role="alert" className="text-xs text-red-500 mt-1 flex items-center gap-1">

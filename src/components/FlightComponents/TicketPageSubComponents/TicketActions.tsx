@@ -22,14 +22,14 @@ export default function TicketActions({ onPrint, onDownload }: TicketActionsProp
         className="flex items-center justify-center gap-2 bg-theme text-white px-8 py-3 rounded-sm font-semibold hover:bg-blue-700 transition-colors text-sm w-full sm:w-auto cursor-pointer"
       >
         <Printer className="w-4 h-4" />
-        Print Ticket
+        Print PDF
       </button>
       <button
         onClick={onDownload}
         className="flex items-center justify-center gap-2 bg-green-500 text-white px-8 py-3 rounded-sm font-semibold hover:bg-green-600 transition-colors text-sm w-full sm:w-auto cursor-pointer"
       >
         <Download className="w-4 h-4" />
-        Download E-Ticket
+        Download PDF
       </button>
     </div>
   )

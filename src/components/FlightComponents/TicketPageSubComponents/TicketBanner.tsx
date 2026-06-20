@@ -26,14 +26,14 @@ export default function TicketBanner({ bookingRef, email, onPrint, onDownload }:
           className="flex items-center gap-1.5 text-xs text-green-700 border border-green-300 rounded px-3 py-1.5 hover:bg-green-100 transition-colors cursor-pointer"
         >
           <Printer className="w-3.5 h-3.5" />
-          Print
+          Print PDF
         </button>
         <button
           onClick={onDownload}
           className="flex items-center gap-1.5 text-xs bg-green-500 text-white rounded px-3 py-1.5 hover:bg-green-600 transition-colors cursor-pointer"
         >
           <Download className="w-3.5 h-3.5" />
-          Download
+          Download PDF
         </button>
       </div>
     </div>

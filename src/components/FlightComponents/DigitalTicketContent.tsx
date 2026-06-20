@@ -28,27 +28,64 @@ export default function DigitalTicketContent() {
     return <TicketNotFoundState />
   }
 
-  const rows = buildTicketRows(flight)
-  const hasStop = flight.stops > 0
+  const activeFlight = flight
+  const rows = buildTicketRows(activeFlight)
+  const hasStop = activeFlight.stops > 0
 
-  function handlePrint() {
-    window.print()
+  async function createTicketPdfUrl() {
+    const [{ pdf }, { default: TicketPdfDocument }] = await Promise.all([
+      import('@react-pdf/renderer'),
+      import('./TicketPageSubComponents/Pdf/TicketPdfDocument'),
+    ])
+
+    const blob = await pdf(
+      <TicketPdfDocument
+        flight={activeFlight}
+        rows={rows}
+        passengerName={passengerName}
+        bookingRef={bookingRef}
+        email={email}
+      />
+    ).toBlob()
+
+    return URL.createObjectURL(blob)
   }
 
-  function handleDownload() {
-    window.print()
+  async function handleDownloadPdf() {
+    const pdfUrl = await createTicketPdfUrl()
+    const link = document.createElement('a')
+    link.href = pdfUrl
+    link.download = `flightpulse-ticket-${bookingRef}.pdf`
+    link.click()
+    window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 1500)
+  }
+
+  async function handlePrintPdf() {
+    const pdfUrl = await createTicketPdfUrl()
+    const pdfWindow = window.open(pdfUrl, '_blank')
+
+    if (!pdfWindow) {
+      URL.revokeObjectURL(pdfUrl)
+      return
+    }
+
+    window.setTimeout(() => {
+      pdfWindow.focus()
+      pdfWindow.print()
+      window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 2000)
+    }, 700)
   }
 
   return (
     <div className="w-full min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <TicketBanner bookingRef={bookingRef} email={email} onPrint={handlePrint} onDownload={handleDownload} />
+        <TicketBanner bookingRef={bookingRef} email={email} onPrint={handlePrintPdf} onDownload={handleDownloadPdf} />
 
         <div className="bg-card border border-card-border rounded-lg shadow-sm mb-8" id="print-ticket">
-          <TicketCardHeader passengerName={passengerName} bookingRef={bookingRef} flight={flight} />
+          <TicketCardHeader passengerName={passengerName} bookingRef={bookingRef} flight={activeFlight} />
           <TicketRowsTable
             rows={rows}
-            flightId={flight.id}
+            flightId={activeFlight.id}
             bookingRef={bookingRef}
             passengerName={passengerName}
             hasStop={hasStop}
@@ -57,7 +94,7 @@ export default function DigitalTicketContent() {
 
         <TicketTerms />
 
-        <TicketActions onPrint={handlePrint} onDownload={handleDownload} />
+        <TicketActions onPrint={handlePrintPdf} onDownload={handleDownloadPdf} />
       </div>
     </div>
   )

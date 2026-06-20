@@ -89,3 +89,34 @@ export type BookingInfo = {
   email: string
   phone: string
 }
+
+
+/* ─────────────────────── Ticket row types ─────────────────────── */
+export type FlightLeg = {
+  type: 'leg'
+  airline: string
+  flightNumber: string
+  cabin: string
+  fromCode: string
+  fromCity: string
+  fromCountry: string
+  fromAirport: string
+  fromTime: string
+  fromDate: string
+  toCode: string
+  toCity: string
+  toCountry: string
+  toAirport: string
+  toTime: string
+  toDate: string
+  duration: string
+}
+
+export type StopRow = {
+  type: 'stop'
+  stopCity: string
+  stopAirport: string
+  layover: string
+}
+
+export type TicketRow = FlightLeg | StopRow

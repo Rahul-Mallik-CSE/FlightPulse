@@ -50,12 +50,12 @@ function DualRangeSlider({
   const pctMax = ((valueMax - min) / (max - min)) * 100
 
   /** Convert a clientX pixel coordinate → slider value [min, max] */
-  function pxToValue(clientX: number): number {
+  const pxToValue = useCallback((clientX: number): number => {
     if (!trackRef.current) return min
     const rect = trackRef.current.getBoundingClientRect()
     const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
     return Math.round(min + ratio * (max - min))
-  }
+  }, [min, max])
 
   const handleMinMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -69,7 +69,7 @@ function DualRangeSlider({
     }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
-  }, [min, onChangeMin])
+  }, [min, onChangeMin, pxToValue])
 
   const handleMaxMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -83,7 +83,7 @@ function DualRangeSlider({
     }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
-  }, [max, onChangeMax])
+  }, [max, onChangeMax, pxToValue])
 
   // Touch support
   const handleMinTouchStart = useCallback((e: React.TouchEvent) => {
@@ -97,7 +97,7 @@ function DualRangeSlider({
     }
     window.addEventListener('touchmove', onMove)
     window.addEventListener('touchend', onEnd)
-  }, [min, onChangeMin])
+  }, [min, onChangeMin, pxToValue])
 
   const handleMaxTouchStart = useCallback((e: React.TouchEvent) => {
     const onMove = (ev: TouchEvent) => {
@@ -110,7 +110,7 @@ function DualRangeSlider({
     }
     window.addEventListener('touchmove', onMove)
     window.addEventListener('touchend', onEnd)
-  }, [max, onChangeMax])
+  }, [max, onChangeMax, pxToValue])
 
   return (
     <div className="mb-5">

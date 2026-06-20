@@ -62,7 +62,14 @@ export default function BookingPage({
   const [errors, setErrors] = useState<FieldErrors>({})
   const [touched, setTouched] = useState<Partial<Record<keyof BookingFormData, boolean>>>({})
 
-  const countries = countryCodesList.all()
+  const countries = Array.from(
+    new Map(
+      countryCodesList.all().map((country) => [
+        `${country.countryCode}-${country.countryCallingCode}`,
+        country,
+      ]),
+    ).values(),
+  )
   const [dialCode, setDialCode] = useState('46') // Sweden default (matches the 🇸🇪 you had)
   
   const [form, setForm] = useState<BookingFormData>({
